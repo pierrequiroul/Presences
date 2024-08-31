@@ -1,345 +1,123 @@
 const presence = new Presence({
-		clientId: "645028677033132033",
-	}),
-	browsingTimestamp = Math.floor(Date.now() / 1000),
-	{ language } = window.navigator; //Make this change-able with presence settings
-//en = English
-//nl = Nederlands
-//Language list can be found here: https://api.premid.app/v2/langFile/list
-
-/**
- * Get Translation
- * @param stringName Name of string you want to get
- */
-function getTranslation(stringName: string): string {
-	switch (stringName) {
-		case "HomePage":
-			switch (language) {
-				case "nl":
-					return "Bekijkt de startpagina";
-				case "de":
-					return "Ist auf der Startseite";
-				case "sv":
-					return "Kollar på startsidan";
-				default:
-					return "Viewing home page";
-			}
-		case "News":
-			switch (language) {
-				case "nl":
-					return "Bladeren door het niews";
-				case "de":
-					return "Sieht sich News an";
-				case "sv":
-					return "Bläddrar igenom nyheter";
-				default:
-					return "Browsing news";
-			}
-		case "WebShows":
-			switch (language) {
-				case "nl":
-					return "Bladeren door alle web shows";
-				case "de":
-					return "Sieht sich Web-Shows an";
-				case "sv":
-					return "Bläddrar igenom web shows";
-				default:
-					return "Browsing web shows";
-			}
-		case "Podcasts":
-			switch (language) {
-				case "nl":
-					return "Bladeren door podcasts";
-				case "de":
-					return "Sieht sich Podcasts an";
-				case "sv":
-					return "Bläddrar igenom podcasts";
-				default:
-					return "Browsing podcasts";
-			}
-		case "Music":
-			switch (language) {
-				case "nl":
-					return "Bladeren door muziek";
-				case "de":
-					return "Sieht sich Musik an";
-				case "sv":
-					return "Bläddrar igenom musik";
-				default:
-					return "Browsing music";
-			}
-		case "Search":
-			switch (language) {
-				case "nl":
-					return "Zoekt naar:";
-				case "de":
-					return "Sucht nach:";
-				case "sv":
-					return "Söker efter:";
-				default:
-					return "Searching for:";
-			}
-		case "Library":
-			switch (language) {
-				case "nl":
-					return "Bekijkt bibliotheek:";
-				case "de":
-					return "Ist in der Bibliothek:";
-				case "sv":
-					return "Kollar på bibliotek:";
-				default:
-					return "Viewing library:";
-			}
-			break;
-		case "Collection":
-			switch (language) {
-				case "nl":
-					return "Bekijkt collectie:";
-				case "de":
-					return "Ist in der Kollektion";
-				case "sv":
-					return "Kollar på samling:";
-				default:
-					return "Viewing collection:";
-			}
-
-		case "Playlist":
-			switch (language) {
-				case "nl":
-					return "Bekijkt afspeellijst:";
-				case "de":
-					return "Ist in der Playlist";
-				case "sv":
-					return "Kollar på spellista:";
-				default:
-					return "Viewing playlist:";
-			}
-		case "Vod":
-			switch (language) {
-				case "nl":
-					return "Bekijkt Film/TV Show/VOD:";
-				case "de":
-					return "Schaut Film/TV-Sendung/VOD:";
-				case "sv":
-					return "Kollar på Film/TV Show/VOD:";
-				default:
-					return "Viewing Movie/TV Show/VOD:";
-			}
-		default:
-			presence.error(
-				"Unknown StringName please contact the Developer of this presence!\nYou can contact him/her in the PreMiD Discord (discord.premid.app)"
-			);
-			return "Unknown stringName";
-	}
-}
-
-let isUploading = false;
+	clientId: "645028677033132033",
+}),
+browsingTimestamp = Math.floor(Date.now() / 1000),
+getStrings = async () => {
+	return presence.getStrings(
+		{
+			play: "general.playing",
+			pause: "general.paused",
+			search: "general.search",
+			searchSomething: "general.searchSomething",
+			browsing: "general.browsing",
+			viewing: "general.viewing",
+			viewPage: "general.viewPage",
+			viewAPage: "general.viewAPage",
+			viewHome: "general.viewHome",
+			viewAccount: "general.viewAccount",
+			viewChannel: "general.viewChannel",
+			viewCategory: "general.viewCategory",
+			viewList: "netflix.viewList",
+			buttonViewPage: "general.buttonViewPage",
+			watching: "general.watching",
+			watchingAd: "youtube.ad",
+			watchingLive: "general.watchingLive",
+			watchingShow: "general.watchingShow",
+			watchingMovie: "general.watchingMovie",
+			listeningMusic: "general.listeningMusic",
+			buttonWatchStream: "general.buttonWatchStream",
+			buttonWatchVideo: "general.buttonWatchVideo",
+			buttonWatchEpisode: "general.buttonViewEpisode",
+			buttonWatchMovie: "general.buttonWatchMovie",
+			buttonListenAlong: "general.buttonListenAlong",
+			live: "general.live",
+			season: "general.season",
+			episode: "general.episode",
+			// Non-existent, should be general strings
+			deferred: "general.deferred",
+		},
+		await presence.getSetting<string>("lang").catch(() => "en")
+	);
+};
+let oldLang: string = null,
+strings: Awaited<ReturnType<typeof getStrings>>;
 
 const enum Assets {
-	Logo = "https://cdn.rcd.gg/PreMiD/websites/P/Plex/assets/logo.png",
+	Logo = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/logo.png",
+	Animated = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/0.gif",
+	Deferred = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/1.gif",
+	LiveAnimated = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/2.gif",
+	Listening = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/3.png",
+	AdEn = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/4.png",
+	AdFr = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/5.png",
+	RTLPlay = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/6.png",
+	RTLTVi = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/7.png",
+	RTLClub = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/8.png",
+	RTLPlug = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/9.png",
+	BelRTL = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/10.png",
+	Contact = "https://cdn.rcd.gg/PreMiD/websites/R/RTLplay/assets/11.png",
 }
 
-const uploadedImages: Record<string, string> = {};
-async function uploadImage(urlToUpload: string): Promise<string> {
-	if (isUploading) return "plex";
-
-	if (uploadedImages[urlToUpload]) return uploadedImages[urlToUpload];
-	isUploading = true;
-
-	const file = await fetch(urlToUpload).then(x => x.blob()),
-		formData = new FormData();
-
-	formData.append("file", file, "file");
-
-	const response = await fetch("https://pd.premid.app/create/image", {
-			method: "POST",
-			body: formData,
-		}),
-		responseUrl = await response.text();
-
-	isUploading = false;
-	uploadedImages[urlToUpload] = responseUrl;
-	return responseUrl;
-}
-function isPrivateIp(ip = location.hostname) {
-	return /^(?:(?:10|127|192(\.|-)168|172(\.|-)(?:1[6-9]|2\d|3[01]))(\.|-)|localhost)/.test(
-		ip
-	);
-}
-
-const shortenedURLs: Record<string, string> = {};
-async function getShortURL(url: string) {
-	if (url && isPrivateIp(new URL(url).hostname)) return await uploadImage(url);
-	if (!url || url.length < 256) return url;
-
-	if (shortenedURLs[url]) return shortenedURLs[url];
-	try {
-		const pdURL = await (
-			await fetch(`https://pd.premid.app/create/${url}`)
-		).text();
-		shortenedURLs[url] = pdURL;
-		return pdURL;
-	} catch (err) {
-		presence.error(err);
-		return url;
-	}
+function exist(selector: string) {
+	return document.querySelector(selector) !== null;
 }
 
 presence.on("UpdateData", async () => {
-	const presenceData: PresenceData = {
-			largeImageKey: Assets.Logo,
-			startTimestamp: browsingTimestamp,
+	const { hostname, /*href,*/ pathname } = document.location,
+		presenceData: PresenceData = {
+			name: "Plex",
+			largeImageKey: Assets.Animated, // Default
+			largeImageText: "Plex",
+			type: ActivityType.Watching,
 		},
-		{ pathname, href } = document.location;
+		[lang, /*usePresenceName, useChannelName,*/ privacy, time, /*buttons, poster*/] =
+			await Promise.all([
+				presence.getSetting<string>("lang").catch(() => "en"),
+				presence.getSetting<boolean>("usePresenceName"),
+				presence.getSetting<boolean>("useChannelName"),
+				presence.getSetting<boolean>("privacy"),
+				presence.getSetting<boolean>("timestamp"),
+				presence.getSetting<number>("buttons"),
+				presence.getSetting<boolean>("usePosterImage"),
+			]);
 
-	if (document.querySelector("#plex")) {
-		if (document.querySelector("#plex > div:nth-child(4) > div")) {
-			const media = document.querySelector<HTMLVideoElement | HTMLAudioElement>(
-					"#plex > div:nth-child(4) > div > div:nth-child(1) > :is(video, audio)"
-				),
-				[cover, titlePresenceName] = await Promise.all([
-					presence.getSetting<boolean>("cover"),
-					presence.getSetting<boolean>("usePresenceName"),
-				]);
-
-			if (
-				document.querySelector("[class^=PlayerControls-buttonGroupCenter]")
-					.children.length > 1
-			)
-				[, presenceData.endTimestamp] = presence.getTimestampsfromMedia(media);
-			else {
-				const formatTimestamps = document
-					.querySelector('[data-testid="mediaDuration"]')
-					?.textContent.split(" ");
-
-				[, presenceData.endTimestamp] = presence.getTimestamps(
-					presence.timestampFromFormat(formatTimestamps?.[0]),
-					presence.timestampFromFormat(formatTimestamps?.[1])
-				);
-			}
-
-			if (cover && navigator.mediaSession.metadata?.artwork[0].src) {
-				const art = navigator.mediaSession.metadata.artwork?.[0]?.src;
-				presenceData.largeImageKey = art?.match(
-					/(\d+)(?<!10)-(\d+)(192-168)?(?<!172-(1[6-9]|2\d|3[0-1]))-(\d+)\.(\d+)/gm
-				)?.[0] // Checks if it's a private ip, since u can't access that to use as a large/smallimagekey.
-					? Assets.Logo // If it's a private ip, just use the logo.
-					: await getShortURL(
-							art
-								.replace(/width=[0-9]{1,3}/, "width=1024")
-								.replace(/height=[0-9]{1,3}/, "height=1024")
-					  );
-			}
-
-			presenceData.smallImageKey = media.paused ? Assets.Pause : Assets.Play;
-			presenceData.smallImageText = media.paused ? "Paused" : "Playing";
-
-			const title = document.querySelector(
-					'[class^=PlayerControlsMetadata] [data-testid="metadataTitleLink"]'
-				).textContent,
-				subTitle = Array.from(
-					document.querySelector(
-						'[class^=PlayerControlsMetadata] :is([data-testid="metadataTitleLink"] + span, [data-testid="metadataTitleLink"] + div)'
-					).childNodes
-				)
-					.map(node => node.textContent)
-					.join(" ");
-
-			if (!titlePresenceName) presenceData.details = title;
-			else presenceData.name = title;
-
-			presenceData.state = subTitle;
-
-			if (
-				(!navigator.mediaSession.metadata.artist &&
-					!navigator.mediaSession.metadata.album) ||
-				!!document.querySelector(".application.show-video-player")
-			)
-				presenceData.type = ActivityType.Watching;
-			else presenceData.type = ActivityType.Listening;
-
-			if (media.paused) {
-				delete presenceData.startTimestamp;
-				delete presenceData.endTimestamp;
-			}
-		} else if (href.includes("/tv.plex.provider.webshows")) {
-			presenceData.details = getTranslation("WebShows");
-			const title = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span"
-			);
-			if (title) {
-				presenceData.details = "Viewing webshow:";
-				presenceData.state = title.textContent;
-			}
-		} else if (href.includes("/tv.plex.provider.news"))
-			presenceData.details = getTranslation("News");
-		else if (href.includes("/tv.plex.provider.podcasts")) {
-			presenceData.details = getTranslation("Podcasts");
-			const title = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span"
-			);
-			if (title) {
-				presenceData.details = "Viewing podcast:";
-				presenceData.state = title.textContent;
-			}
-		} else if (href.includes("/tv.plex.provider.music")) {
-			presenceData.details = getTranslation("Music");
-			const title = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > span"
-			);
-			if (title) {
-				presenceData.details = "Viewing album:";
-				presenceData.state = title.textContent;
-			}
-		} else if (href.includes("/search")) {
-			const search = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div > div:nth-child(2) > span"
-			);
-
-			presenceData.details = getTranslation("Search");
-			presenceData.state = search.textContent.split('"')[1].replace('"', "");
-			presenceData.smallImageKey = Assets.Search;
-		} else if (href.includes("/com.plexapp.plugins.library")) {
-			presenceData.details = getTranslation("Library");
-			presenceData.state = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > a > div:nth-child(1)"
-			).textContent;
-		} else if (href.includes("content.collections")) {
-			presenceData.details = getTranslation("Collection");
-			presenceData.state = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > span"
-			).textContent;
-		} else if (
-			href.includes("content.playlists") &&
-			document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > span"
-			)
-		) {
-			presenceData.details = getTranslation("Playlist");
-			presenceData.state = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > span"
-			).textContent;
-		} else if (href.includes("tv.plex.provider.vod")) {
-			presenceData.details = getTranslation("Vod");
-			presenceData.state = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div > span"
-			).textContent;
-		} else if (href.includes("/server/")) {
-			presenceData.details = getTranslation("Vod");
-			presenceData.state = document.querySelector(
-				"#plex > div:nth-child(3) > div > div:nth-child(2) > div:nth-child(2) > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div > span"
-			).textContent;
-		} else if (
-			href === "https://app.plex.tv/" ||
-			href === "https://app.plex.tv/desktop" ||
-			href === "https://app.plex.tv/desktop#" ||
-			href === "https://app.plex.tv/desktop/#!/" ||
-			pathname === "/web/index.html" ||
-			pathname === "/web/index.html#"
-		)
-			presenceData.details = getTranslation("HomePage");
-
-		if (!presenceData.details && !presenceData.name) presence.setActivity();
-		else presence.setActivity(presenceData);
+	if (oldLang !== lang || !strings) {
+		oldLang = lang;
+		strings = await getStrings();
 	}
+
+	switch (true) {
+		case (exist("Player-miniPlayerContainer-mixkS9")): {
+			presenceData.details = "watch";
+
+
+			break;
+		}
+
+		case (["plex.tv","watch.plex.tv","app.plex.tv"].includes(hostname)): {
+			presenceData.details = strings.browsing;
+
+			presenceData.smallImageKey = Assets.Reading;
+			presenceData.smallImageText = strings.browsing;
+
+			if (!privacy) {
+				presenceData.state = strings.viewHome;
+
+				if (time) presenceData.startTimestamp = browsingTimestamp;
+			}
+			break;
+		}
+
+		case ["recherche"].includes(pathname.split("/")[2]): {
+			
+			break;
+		}
+		default: {
+			presenceData.details = "test";
+			break;
+		}
+	}
+
+	if (presenceData.details) presence.setActivity(presenceData);
+	else presence.setActivity();
 });
